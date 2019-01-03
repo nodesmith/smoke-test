@@ -1,0 +1,20 @@
+{
+  "name": "nodesmith-smoke-test",
+  "version": "1.0.0",
+  "engines": {
+    "node": "10.x"
+  },
+  "scripts": {
+    "smoke": "node ./src/index.js"
+  },
+  "dependencies": {
+    "@slack/client": "^4.8.0",
+    "aion-web3": "^1.1.0",
+    "bignumber.js": "7.2.1",
+    "chai": "4.2.0",
+    "lerna": "3.4.3",
+    "mocha": "5.2.0",
+    "request": "^2.88.0",
+    "sinon": "7.1.0"
+  }
+}
