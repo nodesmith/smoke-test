@@ -372,7 +372,7 @@ matrix.forEach(function(environment) {
       };
 
       const currentVal = await web3.eth.call(callParams)
-      assert.equal(currentVal, '0x00000000000000000000000000000000');
+      assert.equal(currentVal, '0x00000000000000000000000000000005');
 
       // Now actually execute a transaction and ensure an event was emitted
       const setCall = deployedContract.methods.set(33);
