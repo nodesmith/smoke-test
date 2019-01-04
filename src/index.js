@@ -4,18 +4,23 @@ const Constants = require('./constants');
 const request = require('request')
 
 const sendSlackStatusMessage = async (message) => {
-  request.post(Constants.SLACK_WEBHOOK, {
-    json: {
-      text: message
-    }
-  }, (error, res, body) => {
-    if (error) {
-      console.error(error)
-      return
-    }
-    console.log(`statusCode: ${res.statusCode}`)
-    console.log(body)
-  });
+  if (!Constants.SLACK_WEBHOOK) {
+    // If no slack webhook is configured, just log the message to console.
+    console.log(message);
+  } else {
+    request.post(Constants.SLACK_WEBHOOK, {
+      json: {
+        text: message
+      }
+    }, (error, res, body) => {
+      if (error) {
+        console.error(error)
+        return
+      }
+      console.log(`statusCode: ${res.statusCode}`)
+      console.log(body)
+    });
+  }
 }
 
 (async () => {

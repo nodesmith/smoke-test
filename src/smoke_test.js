@@ -67,6 +67,7 @@ matrix.forEach(function(environment) {
         'eth_getCompilers',
         'eth_mining',
         'eth_blockNumber',
+        'eth_call',
         'eth_gasPrice',
         'eth_getTransactionCount',
         'eth_getBalance',
@@ -320,11 +321,18 @@ matrix.forEach(function(environment) {
       assert.deepEqual(logs, expected);
     });
 
-    /*it('should compile and deploy a contract successfully', async function() {
+
+    /**
+     * This test is quite long and intensive - but it's a useful end to end scenario.
+     * 
+     * It allows us to deploy a contract and then also test that we can successfully interact
+     * with that contract after it's deployed. It also tests events.
+     */
+    it('should compile and deploy a contract successfully and interact with that contract', async function() {
       // Default test timeout is 10000, which isn't long enough for us to send a transaction.
       // We will need to revisit this and move transactions outside of mocha once the confirmation times
       // are much slower - but this works for now.
-      this.timeout(120000);
+      this.timeout(200000);
       const sol = fs.readFileSync('./src/HelloWorld.sol', {
         encoding: 'utf8'
       });
@@ -335,7 +343,7 @@ matrix.forEach(function(environment) {
       const deployment = contract.deploy({data: compiled.HelloWorld.code});
 
       // Gas Estimate currently bugged in v0.3.2
-      const gasEstimate = await deployment.estimateGas({
+      const deployGasEstimate = await deployment.estimateGas({
         value: 0,
         gasPrice: '0x2540BE400', // 40,000,000,000
         from: signedAccount.address
@@ -346,13 +354,60 @@ matrix.forEach(function(environment) {
       const transaction = {
         value: 0,
         gasPrice: '0x4A817C814', // 20,000,000,000
-        gas: 300000,
+        gas: 500000,
         data: contractData,
       };
 
       const signedTx = await signedAccount.signTransaction(transaction);
       const txReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
       assert(txReceipt.contractAddress);
-    });*/
+
+      const deployedContract = new web3.eth.Contract(compiled.HelloWorld.info.abiDefinition, txReceipt.contractAddress);
+
+      // After deploying, let's read data from the contract to exercise eth_call
+      const getCall = deployedContract.methods.get();
+      const callParams = {
+        to: txReceipt.contractAddress,
+        data: getCall.encodeABI(),
+      };
+
+      const currentVal = await web3.eth.call(callParams)
+      assert.equal(currentVal, '0x00000000000000000000000000000000');
+
+      // Now actually execute a transaction and ensure an event was emitted
+      const setCall = deployedContract.methods.set(33);
+      const setGasEstimate = await setCall.estimateGas({from: signedAccount.address});
+
+      // Finally, we can create a parameters object. This will be used in the signature
+      // of the transaction and dictates what is sent.
+      const transactionParameters = {
+        to: txReceipt.contractAddress,
+        from: signedAccount.address,
+        gasPrice: '0x4A817C800', // 20000000000
+        gas: setGasEstimate,
+        data: setCall.encodeABI(),
+      };
+      
+      const setSignedTx = await signedAccount.signTransaction(transactionParameters);
+
+      // Send the transaction.
+      const receipt = await web3.eth.sendSignedTransaction(setSignedTx.rawTransaction)
+      .once('transactionHash', (hash) => {
+        assert.isString(hash);
+      })
+      .on('error', (error) => {
+        assert(false, `Unexpected error sending set transaction: $`);
+      });
+
+      assert.isObject(receipt);
+
+      const blockNum = await web3.eth.getBlockNumber();
+      const aHundredBlocksAgo = (blockNum - 100).toString();
+
+      await deployedContract.getPastEvents('AllEvents', { fromBlock: aHundredBlocksAgo, toBlock: 'latest' }, (error, eventLogs) => {
+        assert(!error, `Unexpected error reading logs ${error}`);
+        assert.equal(eventLogs[0].returnValues.newValue, "33");
+      });
+    });
   });
 });
