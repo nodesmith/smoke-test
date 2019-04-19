@@ -122,7 +122,7 @@
   },
   "eth_getStorageAt": {
     "address": "0xa02d10dcce6f814f70c189923f8190f83f938603fc2020140a9ef87949f7ec06",
-    "expectedValue": "0x00000000000000000000000000000005"
+    "expectedValue": "0x05"
   },
   "eth_getLogs": {
     "expected": [

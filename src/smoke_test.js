@@ -362,6 +362,8 @@ matrix.forEach(function(environment) {
       const txReceipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
       assert(txReceipt.contractAddress);
 
+      await new Promise((res) => setTimeout(res, 2000));
+
       const deployedContract = new web3.eth.Contract(compiled.HelloWorld.info.abiDefinition, txReceipt.contractAddress);
 
       // After deploying, let's read data from the contract to exercise eth_call
@@ -400,6 +402,8 @@ matrix.forEach(function(environment) {
       });
 
       assert.isObject(receipt);
+
+      await new Promise((res) => setTimeout(res, 2000));
 
       const blockNum = await web3.eth.getBlockNumber();
       const aHundredBlocksAgo = (blockNum - 100).toString();
