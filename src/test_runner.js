@@ -3,6 +3,10 @@ const Mocha = require('mocha');
 
 const runSmokeTestAndReturnResults = async () => {
   return new Promise((resolve, reject) => {
+    // const mocha = new Mocha({
+    //   grep: 'should compile and deploy a contract'
+    // });
+
     const mocha = new Mocha();
 
     mocha.addFile(path.join(__dirname, 'smoke_test.js'));

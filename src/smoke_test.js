@@ -353,7 +353,7 @@ matrix.forEach(function(environment) {
     
       const transaction = {
         value: 0,
-        gasPrice: '0x4A817C814', // 20,000,000,000
+        gasPrice: '0x5A817C814',
         gas: 500000,
         data: contractData,
       };
@@ -403,7 +403,7 @@ matrix.forEach(function(environment) {
 
       assert.isObject(receipt);
 
-      await new Promise((res) => setTimeout(res, 2000));
+      await new Promise((res) => setTimeout(res, 5000));
 
       const blockNum = await web3.eth.getBlockNumber();
       const aHundredBlocksAgo = (blockNum - 100).toString();
